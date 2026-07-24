@@ -42,8 +42,6 @@ input:focus{outline:none;border-color:#0F3D3A}
 .chip{float:left;-webkit-appearance:none;appearance:none;font-family:inherit;font-size:14px;background:#fff;
  color:#5A6360;border:1px solid #D6DBD8;border-radius:999px;padding:9px 14px;cursor:pointer;margin:0 8px 8px 0}
 .chip[aria-pressed="true"]{background:#0F3D3A;background:var(--deep);border-color:#0F3D3A;color:#fff}
-.chip.power{border-color:#E8B830;border-width:2px;font-weight:700;color:#5A4406}
-.chip.power[aria-pressed="true"]{background:#E8B830;background:var(--hazard);border-color:#E8B830;color:#3D2E04}
 .hint{font-size:12px;color:#8B9490;margin:8px 0 0}
 .divider{margin:30px 0 18px;border-top:1px solid #D6DBD8;padding-top:10px;font-size:12px;letter-spacing:.14em;color:#8B9490}
 .label{background:#fff;border:1px solid #D6DBD8;border-radius:12px;padding:20px 18px}
@@ -74,6 +72,10 @@ ol.small{margin:0;padding-left:1.4em;font-size:13.5px;line-height:1.75}
 .imgout{margin-top:18px;background:#fff;border:1px solid #D6DBD8;border-radius:10px;padding:14px}
 .imgout img{width:100%;height:auto;display:block;border:1px solid #E4E8E6}
 .imgout p{font-size:12.5px;color:#5A6360;margin:10px 0 0;line-height:1.7}
+.dlbtn{display:block;margin:14px 0 0;padding:15px;background:#0F3D3A;color:#fff;
+ text-align:center;text-decoration:none;font-size:17px;font-weight:700;border-radius:10px}
+.dlbtn:active{opacity:.75}
+.dlnote{text-align:center;font-size:12px;color:#8B9490;margin:8px 0 0}
 .disc{margin:30px 0 0;padding:18px;background:#fff;border:1px solid #D6DBD8;border-radius:10px;
  font-size:13px;line-height:1.8;color:#5A6360}
 .disc h2{font-size:14px;color:#16181D;margin:0 0 6px}
@@ -218,7 +220,7 @@ ol.small{margin:0;padding-left:1.4em;font-size:13.5px;line-height:1.75}
   <div class="block">
     <span class="lab">玩具類型（可複選）</span>
     <div class="chips" id="chips" role="group" aria-label="玩具類型，可複選"></div>
-    <p class="hint">黃色為驅動方式，選了才會帶出電池注意事項</p>
+    <p class="hint">勾選「電力驅動」才會帶出電池相關注意事項</p>
   </div>
 
   <div class="block">
@@ -284,7 +286,7 @@ window.onerror=function(msg,url,line){
 
   // [名稱, 警語, 年齡下限, 年齡上限]  null = 不檢查
   var TYPES=[
-  ["電力驅動（含電池）","",null,null],
+  ["電力驅動","",null,null],
   ["內含小物件","本玩具內含小物件，不適合未滿 {A} 歲兒童使用。",null,null],
   ["氣球","未充氣或破損氣球可能使未滿 8 歲兒童哽噎或窒息。須在成人監督下使用。未充氣氣球應置於兒童無法取得的地方。破損氣球應立即丟棄。",8,null],
   ["小球／彈珠","本玩具為小球(彈珠)，可能有哽噎危險，不適合未滿 3 歲兒童。",3,null],
@@ -315,7 +317,7 @@ window.onerror=function(msg,url,line){
   function makeChip(idx){
     var b=document.createElement('button');
     b.type='button';
-    b.className = (idx===POWER) ? 'chip power' : 'chip';
+    b.className = 'chip';
     b.setAttribute('aria-pressed','false');
     b.appendChild(document.createTextNode(TYPES[idx][0]));
     b.onclick=function(){
@@ -420,9 +422,12 @@ window.onerror=function(msg,url,line){
 
   function hasMfr(){ return raw('mkindMfr')==='mfr'; }
 
+  // 標示中是否實際列出製造商：須選「製造商」且名稱已填寫
+  function mfrShown(){ return hasMfr() && raw('mfr')!==''; }
+
   function respName(){
     if(gSrc!=='imp'){ return '製造商（或委製商或分裝商）'; }
-    return hasMfr() ? '進口商' : '進口商/委製商';
+    return mfrShown() ? '進口商' : '進口商/委製商';
   }
 
   var KINDTXT={
@@ -451,7 +456,7 @@ window.onerror=function(msg,url,line){
     document.getElementById('mfrNameWrap').style.display = isMfr ? 'block' : 'none';
     document.getElementById('mfrLab').innerHTML = elec() ? '製造商之名稱' : '原始製造廠商之名稱';
     document.getElementById('mfrHint').innerHTML = isMfr
-      ? '原始地與地址國別不同時，請改選「委製商」'
+      ? '原始地與地址國別不同時，請改選「委製商」；名稱留空時不列此欄，下方自動改標為「進口商/委製商」'
       : '選委製商時不另列該欄，下方改標為「進口商/委製商」';
     var base = respName();
     document.getElementById('respLab').innerHTML = base+'名稱';
@@ -477,8 +482,8 @@ window.onerror=function(msg,url,line){
     f.push([(gSrc==='imp'&&E)?'適用之年齡':'適用年齡', A+' 歲以上']);
     if(gSrc==='imp'){
       f.push([E?'原始地':'原始製造國', val('org')]);
-      if(hasMfr()){
-        f.push([E?'製造商之名稱':'原始製造廠商之名稱', val('mfr')]);
+      if(mfrShown()){
+        f.push([E?'製造商之名稱':'原始製造廠商之名稱', raw('mfr')]);
       }
       var rn=respName();
       f.push([rn+'名稱',val('lname')]);
@@ -798,9 +803,8 @@ window.onerror=function(msg,url,line){
         '警告標題 5mm、內容 1.5mm、其餘欄位 2mm'+(r.mg>0?('，另加 '+r.mg+'％ 安全裕度'):'')+'。<br>'+
         '列印時務必選「實際大小 / 100%」，不可縮放。'+
         (r.approx?'<br><span style="color:#7B241C">檢驗標識為內建近似圖形，正式標示請上傳官方原始圖檔。</span>':'')+'</p>'+
-        '<p style="margin-top:8px"><a id="dl" href="'+url+'" download="'+name+'" '+
-        'style="color:#0F3D3A;font-weight:700">下載 PNG</a>　'+
-        '<span style="color:#8B9490">（手機可長按圖片儲存）</span></p></div>';
+        '<a id="dl" class="dlbtn" href="'+url+'" download="'+name+'">下載 PNG 圖檔</a>'+
+        '<p class="dlnote">手機也可長按上方圖片直接儲存</p></div>';
       btn.innerHTML='已產生';
       setTimeout(function(){btn.innerHTML='產生圖片';},1500);
     }catch(err){

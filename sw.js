@@ -1,4 +1,4 @@
-var CACHE = 'toy-label-v7';
+var CACHE = 'toy-label-v9';
 var FILES = [
   './',
   './index.html',
