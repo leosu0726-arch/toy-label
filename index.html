@@ -25,6 +25,7 @@ header{background:#0F3D3A;background:var(--deep);color:#fff;padding:28px 0 24px;
 .eyebrow{font-size:12px;letter-spacing:.16em;color:#9FC2BD;margin:0 0 6px}
 h1{font-family:"Noto Serif TC","Songti TC",serif;font-weight:700;font-size:26px;line-height:1.3;margin:0}
 .sub{font-size:13px;color:#B7D2CE;margin:8px 0 0}
+.build{font-size:12px;color:#7FA9A3;margin:10px 0 0;font-family:ui-monospace,monospace}
 .block{margin:0 0 22px}
 .lab{font-size:13px;color:#5A6360;color:var(--ink-2);margin:0 0 8px;display:block}
 .seg{display:block;border:1px solid #D6DBD8;border-radius:10px;overflow:hidden;background:#fff}
@@ -96,6 +97,7 @@ ol.small{margin:0;padding-left:1.4em;font-size:13.5px;line-height:1.75}
     <p class="eyebrow">玩具商品檢驗 · 標示查核</p>
     <h1>玩具中文標示產生器</h1>
     <p class="sub">選條件，即時產出符合規定的標示範本</p>
+    <p class="build">版本 <span id="ver">v10</span>　<span id="swver"></span></p>
   </div>
 </header>
 
@@ -262,7 +264,7 @@ ol.small{margin:0;padding-left:1.4em;font-size:13.5px;line-height:1.75}
     <p>中文標示規定及函釋：<br>
       <a href="https://www.bsmi.gov.tw/wSite/laws/review.jsp?lawId=502880825f6c6ec0015f6cb95eb51114"
          target="_blank" rel="noopener">經濟部標準檢驗局 法規查詢系統</a></p>
-    <p class="ver">版本 1.0　法規依據更新日：112 年 5 月 18 日</p>
+    <p class="ver">版本 v10　法規依據更新日：112 年 5 月 18 日</p>
   </section>
 </div>
 
@@ -814,7 +816,23 @@ window.onerror=function(msg,url,line){
   };
 
   if('serviceWorker' in navigator){
-    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js')['catch'](function(){}); });
+    window.addEventListener('load',function(){
+      // updateViaCache:'none' → 每次都向伺服器確認 sw.js，避免卡在舊版
+      navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(reg){
+        reg.update();
+        navigator.serviceWorker.addEventListener('message',function(ev){
+          if(ev.data && ev.data.swVersion){
+            document.getElementById('swver').innerHTML='快取 '+ev.data.swVersion;
+          }
+        });
+        function ask(){
+          if(navigator.serviceWorker.controller){
+            navigator.serviceWorker.controller.postMessage('version');
+          }
+        }
+        ask(); setTimeout(ask,1200);
+      })['catch'](function(){});
+    });
   }
   var deferred=null, box=document.getElementById('install'), ibtn=document.getElementById('installBtn');
   window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; box.style.display='block'; });
