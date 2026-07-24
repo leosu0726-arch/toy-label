@@ -1,0 +1,17 @@
+{
+  "name": "玩具商品中文標示產生器",
+  "short_name": "玩具標示",
+  "description": "依產品來源、驅動方式與玩具類型，產生符合規定的中文標示範本",
+  "lang": "zh-Hant",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F3D3A",
+  "theme_color": "#0F3D3A",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
